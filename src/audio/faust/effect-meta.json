@@ -1,0 +1,173 @@
+{
+    "name": "chord_synth",
+    "filename": "chord_synth.dsp",
+    "version": "2.79.3",
+    "compile_options": "-lang wasm-e -ct 1 -es 1 -mcd 16 -mdd 1024 -mdy 33 -single -ftz 2",
+    "library_list": [
+        "/usr/share/faust/stdfaust.lib",
+        "/usr/share/faust/reverbs.lib",
+        "/usr/share/faust/delays.lib",
+        "/usr/share/faust/signals.lib",
+        "/usr/share/faust/maths.lib",
+        "/usr/share/faust/platform.lib",
+        "/usr/share/faust/filters.lib"
+    ],
+    "include_pathnames": [
+        "/share/faust",
+        "/usr/local/share/faust",
+        "/usr/share/faust",
+        "."
+    ],
+    "size": 1630720,
+    "code": "GPAWAZQ9Hw==",
+    "inputs": 4,
+    "outputs": 2,
+    "meta": [
+        {
+            "author": "RaindropRipples"
+        },
+        {
+            "compile_options": "-lang wasm-e -ct 1 -es 1 -mcd 16 -mdd 1024 -mdy 33 -single -ftz 2"
+        },
+        {
+            "delays.lib/name": "Faust Delay Library"
+        },
+        {
+            "delays.lib/version": "1.1.0"
+        },
+        {
+            "filename": "chord_synth.dsp"
+        },
+        {
+            "filters.lib/allpass_comb:author": "Julius O. Smith III"
+        },
+        {
+            "filters.lib/allpass_comb:copyright": "Copyright (C) 2003-2019 by Julius O. Smith III <jos@ccrma.stanford.edu>"
+        },
+        {
+            "filters.lib/allpass_comb:license": "MIT-style STK-4.3 license"
+        },
+        {
+            "filters.lib/lowpass0_highpass1": "MIT-style STK-4.3 license"
+        },
+        {
+            "filters.lib/name": "Faust Filters Library"
+        },
+        {
+            "filters.lib/version": "1.7.1"
+        },
+        {
+            "maths.lib/author": "GRAME"
+        },
+        {
+            "maths.lib/copyright": "GRAME"
+        },
+        {
+            "maths.lib/license": "LGPL with exception"
+        },
+        {
+            "maths.lib/name": "Faust Math Library"
+        },
+        {
+            "maths.lib/version": "2.8.1"
+        },
+        {
+            "name": "chord_synth"
+        },
+        {
+            "platform.lib/name": "Generic Platform Library"
+        },
+        {
+            "platform.lib/version": "1.3.0"
+        },
+        {
+            "reverbs.lib/mono_freeverb:author": "Romain Michon"
+        },
+        {
+            "reverbs.lib/name": "Faust Reverb Library"
+        },
+        {
+            "reverbs.lib/stereo_freeverb:author": "Romain Michon"
+        },
+        {
+            "reverbs.lib/version": "1.4.0"
+        },
+        {
+            "signals.lib/name": "Faust Signal Routing Library"
+        },
+        {
+            "signals.lib/version": "1.6.0"
+        },
+        {
+            "version": "1.0"
+        }
+    ],
+    "ui": [
+        {
+            "type": "vgroup",
+            "label": "chord_synth",
+            "items": [
+                {
+                    "type": "hslider",
+                    "label": "delayFeedback",
+                    "varname": "fHslider1",
+                    "shortname": "delayFeedback",
+                    "address": "/chord_synth/delayFeedback",
+                    "index": 4,
+                    "init": 0.4,
+                    "min": 0,
+                    "max": 0.85,
+                    "step": 0.01
+                },
+                {
+                    "type": "hslider",
+                    "label": "delayMix",
+                    "varname": "fHslider0",
+                    "shortname": "delayMix",
+                    "address": "/chord_synth/delayMix",
+                    "index": 0,
+                    "init": 0.25,
+                    "min": 0,
+                    "max": 1,
+                    "step": 0.01
+                },
+                {
+                    "type": "hslider",
+                    "label": "delayTime",
+                    "varname": "fHslider2",
+                    "shortname": "delayTime",
+                    "address": "/chord_synth/delayTime",
+                    "index": 24,
+                    "init": 0.3,
+                    "min": 0.05,
+                    "max": 1,
+                    "step": 0.01
+                },
+                {
+                    "type": "hslider",
+                    "label": "reverbMix",
+                    "varname": "fHslider4",
+                    "shortname": "reverbMix",
+                    "address": "/chord_synth/reverbMix",
+                    "index": 1372472,
+                    "init": 0.4,
+                    "min": 0,
+                    "max": 1,
+                    "step": 0.01
+                },
+                {
+                    "type": "hslider",
+                    "label": "reverbRoom",
+                    "varname": "fHslider3",
+                    "shortname": "reverbRoom",
+                    "address": "/chord_synth/reverbRoom",
+                    "index": 1278160,
+                    "init": 0.7,
+                    "min": 0,
+                    "max": 1,
+                    "step": 0.01
+                }
+            ]
+        }
+    ]
+}

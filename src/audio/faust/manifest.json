@@ -1,0 +1,17 @@
+{
+  "name": "Faust chord_synth",
+  "short_name": "chord_synth",
+  "start_url": "./index.html",
+  "description": "Progressive Web App for chord_synth",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#000000",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "./icon.png",
+      "sizes": "390x390",
+      "type": "image/png"
+    }
+  ]
+}

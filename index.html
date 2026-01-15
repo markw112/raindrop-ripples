@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Raindrop Ripples - WebGPU</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #000;
+    }
+    canvas {
+      display: block;
+    }
+    #info {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      color: #fff;
+      font-family: system-ui, sans-serif;
+      font-size: 14px;
+      background: rgba(0,0,0,0.5);
+      padding: 8px 12px;
+      border-radius: 4px;
+      pointer-events: none;
+    }
+    #error {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      color: #ff6b6b;
+      font-family: system-ui, sans-serif;
+      font-size: 18px;
+      text-align: center;
+      display: none;
+    }
+    #settings {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: rgba(0,0,0,0.7);
+      padding: 16px;
+      border-radius: 8px;
+      font-family: system-ui, sans-serif;
+      color: #fff;
+      min-width: 200px;
+    }
+    #settings h3 {
+      margin: 0 0 12px 0;
+      font-size: 14px;
+      font-weight: 600;
+      color: #aaa;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .setting {
+      margin-bottom: 12px;
+    }
+    .setting:last-child {
+      margin-bottom: 0;
+    }
+    .setting label {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 13px;
+      margin-bottom: 6px;
+    }
+    .setting label span.value {
+      color: #88ccff;
+      font-weight: 500;
+    }
+    .setting input[type="range"] {
+      width: 100%;
+      height: 6px;
+      border-radius: 3px;
+      background: #333;
+      outline: none;
+      -webkit-appearance: none;
+      appearance: none;
+    }
+    .setting input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: #88ccff;
+      cursor: pointer;
+    }
+    .setting input[type="range"]::-moz-range-thumb {
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: #88ccff;
+      cursor: pointer;
+      border: none;
+    }
+    .audio-btn {
+      width: 100%;
+      padding: 10px 16px;
+      background: #333;
+      border: 1px solid #555;
+      border-radius: 4px;
+      color: #fff;
+      font-size: 13px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .audio-btn:hover {
+      background: #444;
+      border-color: #88ccff;
+    }
+    .audio-btn.active {
+      background: #2a5a3a;
+      border-color: #4a8a5a;
+      color: #8f8;
+    }
+    .section-divider {
+      margin: 16px 0;
+      border-top: 1px solid #444;
+    }
+  </style>
+</head>
+<body>
+  <div id="info">Raindrop Ripples</div>
+  <div id="error">
+    WebGPU is not supported in your browser.<br>
+    Please use Chrome 113+ or Edge 113+
+  </div>
+  <div id="settings">
+    <h3>Settings</h3>
+    <div class="setting">
+      <label>
+        <span>Droplet Frequency</span>
+        <span class="value" id="frequency-value">2/s</span>
+      </label>
+      <input type="range" id="frequency" min="0.5" max="20" step="0.5" value="2">
+    </div>
+    <div class="setting">
+      <label>
+        <span>Droplet Speed</span>
+        <span class="value" id="speed-value">15</span>
+      </label>
+      <input type="range" id="speed" min="5" max="40" step="1" value="15">
+    </div>
+
+    <div class="section-divider"></div>
+    <h3>Audio</h3>
+
+    <div class="setting">
+      <button id="audio-toggle" class="audio-btn">Enable Audio</button>
+    </div>
+
+    <div class="setting">
+      <label>
+        <span>Volume</span>
+        <span class="value" id="volume-value">70%</span>
+      </label>
+      <input type="range" id="volume" min="0" max="1" step="0.05" value="0.7">
+    </div>
+
+    <div class="setting">
+      <label>
+        <span>Chord</span>
+        <span class="value" id="chord-value">m9</span>
+      </label>
+      <input type="range" id="chord-type" min="0" max="10" step="1" value="5">
+    </div>
+
+    <div class="setting">
+      <label>
+        <span>Morph</span>
+        <span class="value" id="morph-value">50%</span>
+      </label>
+      <input type="range" id="morph" min="0" max="1" step="0.05" value="0.5">
+    </div>
+
+    <div class="setting">
+      <label>
+        <span>Brightness</span>
+        <span class="value" id="brightness-value">50%</span>
+      </label>
+      <input type="range" id="audio-brightness" min="0" max="1" step="0.05" value="0.5">
+    </div>
+
+    <div class="setting">
+      <label>
+        <span>Decay Time</span>
+        <span class="value" id="decay-value">2.5s</span>
+      </label>
+      <input type="range" id="decay" min="0.5" max="8" step="0.1" value="2.5">
+    </div>
+
+    <div class="setting">
+      <label>
+        <span>Reverb</span>
+        <span class="value" id="reverb-value">40%</span>
+      </label>
+      <input type="range" id="reverb" min="0" max="1" step="0.05" value="0.4">
+    </div>
+
+    <div class="setting">
+      <label>
+        <span>Delay</span>
+        <span class="value" id="delay-value">25%</span>
+      </label>
+      <input type="range" id="delay" min="0" max="1" step="0.05" value="0.25">
+    </div>
+  </div>
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>
