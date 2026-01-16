@@ -23,8 +23,9 @@ const createFaustNode = async (audioContext, dspName = "chord_synth", voices = 0
     // Set to true if the DSP has an effect
     const FAUST_DSP_HAS_EFFECT = true;
 
-    // Load WASM/JSON files from public directory (works in dev and production)
-    const baseUrl = '/audio/chord_synth/';
+    // Construct URL at runtime to prevent Vite from transforming it during build
+    // Use window.location.origin to get the full base URL, then append the public path
+    const baseUrl = new URL('/audio/chord_synth/', window.location.origin).href;
     console.log('FAUST baseUrl:', baseUrl);
 
     // Import necessary Faust modules and data
