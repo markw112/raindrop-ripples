@@ -93,8 +93,8 @@ export class AudioSystem {
    * Load and instantiate FAUST WebAssembly module.
    */
   async loadFaustModule() {
-    // Import the create-node module from public directory (works in dev and production)
-    const { createFaustNode } = await import('/audio/chord_synth/create-node.js');
+    // Import the create-node module from src (gets bundled by Vite)
+    const { createFaustNode } = await import('./faust/create-node.js');
 
     // Create polyphonic FAUST node using the exported helper
     const result = await createFaustNode(this.audioContext, 'chord_synth', this.maxVoices);

@@ -19,14 +19,12 @@
  * @param {boolean} [sp] - Whether to create a ScriptProcessorNode instead of an AudioWorkletNode.
  * @returns {Promise<{ faustNode: FaustNode | null; dspMeta: FaustDspMeta }>} - An object containing the Faust audio node and the DSP metadata.
  */
-const createFaustNode = async (audioContext, dspName = "template", voices = 0, sp = false, bufferSize = 512) => {
+const createFaustNode = async (audioContext, dspName = "chord_synth", voices = 0, sp = false, bufferSize = 512) => {
     // Set to true if the DSP has an effect
     const FAUST_DSP_HAS_EFFECT = true;
 
-    // Get the base URL for loading FAUST assets (relative to this module)
-    // import.meta.url gives us the full path to this file, we need the directory
-    const moduleUrl = import.meta.url;
-    const baseUrl = moduleUrl.substring(0, moduleUrl.lastIndexOf('/') + 1);
+    // Load WASM/JSON files from public directory (works in dev and production)
+    const baseUrl = '/audio/chord_synth/';
     console.log('FAUST baseUrl:', baseUrl);
 
     // Import necessary Faust modules and data
