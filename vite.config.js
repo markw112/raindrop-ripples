@@ -5,7 +5,9 @@ export default defineConfig({
     open: true
   },
   build: {
-    target: 'esnext'
+    target: 'esnext',
+    // Disable minification entirely to preserve Function.toString() for faustwasm AudioWorklet
+    minify: false
   },
   assetsInclude: ['**/*.wasm']
 });
