@@ -8,18 +8,42 @@
 
 export class NoteMapper {
   constructor() {
-    // C pentatonic scale: C, D, E, G, A
-    // MIDI note numbers for octave 4
-    this.pentatonicBase = [60, 62, 64, 67, 69]; // C4, D4, E4, G4, A4
-
     // Configuration
     this.lakeSize = 20;
     this.lakeHalf = 10;
     this.numOctaves = 3;
     this.baseOctave = 3;
+    this.rootNote = 60; // C4 as MIDI base
+
+    // Chord-matched scales - each chord type has a harmonically compatible scale
+    // Scale intervals are semitones from root
+    this.chordScales = {
+      0: [0, 7, 12, 19, 24],           // Octave chord -> octaves/fifths only
+      1: [0, 7, 12, 19, 24],           // Fifth chord -> fifths
+      2: [0, 2, 5, 7, 12],             // Sus4 -> suspended feel
+      3: [0, 3, 5, 7, 10],             // Minor -> natural minor pentatonic
+      4: [0, 3, 5, 7, 10],             // Minor 7th -> minor pentatonic
+      5: [0, 3, 5, 7, 10, 14],         // Minor 9th -> minor + 9th
+      6: [0, 3, 5, 7, 10, 14, 17],     // Minor 11th -> extended minor
+      7: [0, 2, 4, 7, 9],              // 6/9 -> major pentatonic
+      8: [0, 2, 4, 7, 11, 14],         // Major 9th -> major + extensions
+      9: [0, 2, 4, 7, 11],             // Major 7th -> major with 7th
+      10: [0, 2, 4, 7, 9],             // Major -> major pentatonic
+    };
+    this.currentChordType = 5; // Default: Minor 9th
 
     // Pre-calculate frequencies for all possible notes
     this.frequencyTable = this.buildFrequencyTable();
+  }
+
+  /**
+   * Set the current chord type to match scales accordingly.
+   * @param {number} chordType - Chord type index (0-10)
+   */
+  setChordType(chordType) {
+    if (chordType >= 0 && chordType <= 10) {
+      this.currentChordType = chordType;
+    }
   }
 
   /**
@@ -60,17 +84,20 @@ export class NoteMapper {
     const normalizedX = (clampedX + this.lakeHalf) / this.lakeSize;
     const normalizedZ = (clampedZ + this.lakeHalf) / this.lakeSize;
 
-    // X-axis -> Note selection (5 notes across the width)
-    const noteIndex = Math.floor(normalizedX * 5);
-    const clampedNoteIndex = Math.min(noteIndex, 4);
+    // Get the chord-matched scale for current chord type
+    const scale = this.chordScales[this.currentChordType];
+
+    // X-axis -> Note selection (dynamic based on scale length)
+    const noteIndex = Math.floor(normalizedX * scale.length);
+    const clampedNoteIndex = Math.min(noteIndex, scale.length - 1);
 
     // Z-axis -> Octave selection (3 octaves across the depth)
     const octaveOffset = Math.floor(normalizedZ * this.numOctaves);
     const clampedOctaveOffset = Math.min(octaveOffset, this.numOctaves - 1);
 
-    // Calculate MIDI note
-    const baseMidi = this.pentatonicBase[clampedNoteIndex];
-    const midiNote = baseMidi + (clampedOctaveOffset - 1) * 12;
+    // Calculate MIDI note from scale interval
+    const semitone = scale[clampedNoteIndex];
+    const midiNote = this.rootNote + semitone + (clampedOctaveOffset - 1) * 12;
 
     // Get frequency from table
     const frequency = this.frequencyTable.get(midiNote) || 440;

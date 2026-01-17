@@ -8,6 +8,10 @@ export class RippleSimulation {
     this.damping = 0.985;
     this.ripples = [];
 
+    // Edge fade configuration - ripples fade out instead of bouncing
+    this.edgeFadeWidth = 25;      // Pixels from edge where fade begins
+    this.edgeFadeStrength = 0.92; // Extra damping multiplier at edge
+
     // CPU-based height field simulation
     this.heightCurrent = new Float32Array(resolution * resolution);
     this.heightPrevious = new Float32Array(resolution * resolution);
@@ -30,6 +34,18 @@ export class RippleSimulation {
     this.heightTexture.wrapS = THREE.ClampToEdgeWrapping;
     this.heightTexture.wrapT = THREE.ClampToEdgeWrapping;
     this.heightTexture.needsUpdate = true;
+  }
+
+  /**
+   * Calculate distance from nearest edge, normalized 0-1.
+   * 0 = at edge, 1 = inside safe zone (no extra damping)
+   */
+  getEdgeFactor(x, y, res) {
+    const minDist = Math.min(x, res - 1 - x, y, res - 1 - y);
+    if (minDist >= this.edgeFadeWidth) return 1.0;
+    // Smoothstep for gradual transition
+    const t = minDist / this.edgeFadeWidth;
+    return t * t * (3 - 2 * t);
   }
 
   addRipple(x, z, strength = 0.5) {
@@ -93,6 +109,13 @@ export class RippleSimulation {
 
         // Damping
         newHeight *= this.damping;
+
+        // Edge absorption - fade out near boundaries instead of bouncing
+        const edgeFactor = this.getEdgeFactor(x, y, res);
+        if (edgeFactor < 1.0) {
+          const absorption = this.edgeFadeStrength + (1 - this.edgeFadeStrength) * edgeFactor;
+          newHeight *= absorption;
+        }
 
         this.heightNext[idx] = newHeight;
       }

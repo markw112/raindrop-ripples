@@ -31,11 +31,12 @@ class App {
 
     // Create scene
     this.scene = new THREE.Scene();
-    this.scene.background = new THREE.Color(0xffb380); // Warm sunset color
+    // Dramatic dusk - deep orange-red sky
+    this.scene.background = new THREE.Color(0xe85a30);
 
-    // Add fog for infinite water horizon effect (dense, enshrouded look)
-    // Using FogExp2 for exponential density falloff
-    this.scene.fog = new THREE.FogExp2(0xffb380, 0.04);
+    // Add fog for infinite water horizon effect
+    // Using FogExp2 for exponential density falloff - slightly darker for dusk
+    this.scene.fog = new THREE.FogExp2(0xc04828, 0.035);
 
     // Create camera - fixed 45-degree overhead angle
     this.camera = new THREE.PerspectiveCamera(
@@ -86,7 +87,7 @@ class App {
       // Use HDR for reflections only, set solid color background for fog to work
       this.scene.environment = this.envMap;
       // Background must match fog color for proper fog blending
-      this.scene.background = new THREE.Color(0xffb380);
+      this.scene.background = new THREE.Color(0xe85a30);
       console.log('HDR environment map loaded');
     } else {
       // Fallback: add procedural sky and capture it
@@ -94,7 +95,7 @@ class App {
       this.sky = createSky();
       this.scene.add(this.sky);
       this.envMap = createEnvMap(this.renderer, this.scene);
-      this.scene.background = new THREE.Color(0xffb380);
+      this.scene.background = new THREE.Color(0xe85a30);
     }
 
     // Create lake surface
@@ -246,13 +247,13 @@ class App {
   }
 
   setupLighting() {
-    // Ambient light
-    const ambient = new THREE.AmbientLight(0x6688aa, 0.6);
+    // Ambient light - purple-tinted for dusk atmosphere
+    const ambient = new THREE.AmbientLight(0x553344, 0.5);
     this.scene.add(ambient);
 
-    // Main directional light (sun)
-    this.sun = new THREE.DirectionalLight(0xffffff, 2);
-    this.sun.position.set(10, 20, 10);
+    // Main directional light (sun) - warm orange, lower position for dusk
+    this.sun = new THREE.DirectionalLight(0xffaa66, 1.8);
+    this.sun.position.set(15, 8, 10);
     this.scene.add(this.sun);
 
     // Store normalized light direction (pointing FROM sun TO scene)
@@ -261,8 +262,8 @@ class App {
       .normalize()
       .negate();
 
-    // Fill light
-    const fill = new THREE.DirectionalLight(0x8888ff, 0.3);
+    // Fill light - purple complement for dusk
+    const fill = new THREE.DirectionalLight(0x442266, 0.4);
     fill.position.set(-5, 10, -5);
     this.scene.add(fill);
   }

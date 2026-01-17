@@ -31,6 +31,20 @@ morph = hslider("morph", 0.5, 0, 1, 0.01);  // Blend between waveforms
 brightness = hslider("brightness", 0.5, 0, 1, 0.01);
 decayTime = hslider("decayTime", 2.5, 0.5, 8, 0.1);
 
+// New envelope parameters
+attackTime = hslider("attackTime", 0.05, 0.005, 0.5, 0.001) : si.smoo;
+
+// Filter envelope parameters
+filterEnvAmount = hslider("filterEnvAmount", 0.3, 0, 1, 0.01);
+filterEnvDecay = hslider("filterEnvDecay", 1.5, 0.1, 4, 0.1);
+
+// LFO for subtle movement
+lfoRate = hslider("lfoRate", 0.3, 0.05, 2, 0.01);
+lfoDepth = hslider("lfoDepth", 0, 0, 0.5, 0.01);
+
+// Voice detune for richness
+detune = hslider("detune", 0.015, 0, 0.05, 0.001);
+
 // Reverb parameters
 reverbMix = hslider("reverbMix", 0.4, 0, 1, 0.01);
 reverbRoom = hslider("reverbRoom", 0.7, 0, 1, 0.01);
@@ -88,15 +102,24 @@ getInterval(c, n) = ba.if(c == 0, ba.take(n+1, chord0),
                    ba.take(n+1, chord10)))))))))));
 
 // ============================================================================
+// LFO
+// ============================================================================
+
+// Slow LFO for subtle modulation
+lfo = os.osc(lfoRate) * lfoDepth;
+
+// ============================================================================
 // ENVELOPE
 // ============================================================================
 
-// Soft attack, long release for pad-like sound
-attackTime = 0.05;
+// Configurable attack, long release for pad-like sound
 releaseTime = decayTime;
 
-// AR envelope with smooth curves
+// AR envelope with smooth curves (using attackTime parameter)
 envelope = en.ar(attackTime, releaseTime, gate);
+
+// Filter envelope (separate, faster decay for plucky filter)
+filterEnv = en.ar(0.01, filterEnvDecay, gate);
 
 // Per-voice envelope modulation (higher voices decay slightly faster)
 voiceEnv(n) = envelope : pow(1.0 - n * 0.1);
@@ -125,12 +148,15 @@ with {
 // CHORD VOICE SYNTHESIS
 // ============================================================================
 
-// Single chord voice with frequency, amplitude, and envelope
-chordVoice(n) = morphOsc(voiceFreq) * voiceAmp * voiceEnv(n)
+// Single chord voice with frequency, amplitude, envelope, and detune
+chordVoice(n) = morphOsc(voiceFreqDetuned) * voiceAmp * voiceEnv(n)
 with {
     // Get interval in semitones and convert to frequency
     interval = getInterval(chordType, n) : si.smoo;
     voiceFreq = freq * semi2ratio(interval);
+
+    // Apply per-voice detune for richer sound (spread voices slightly)
+    voiceFreqDetuned = voiceFreq * (1 + (n - 1.5) * detune);
 
     // Voice amplitudes (root louder, upper voices softer)
     amps = (1.0, 0.7, 0.6, 0.5);
@@ -145,9 +171,17 @@ chordOsc = sum(n, 4, chordVoice(n));
 // ============================================================================
 
 // Brightness-controlled low-pass filter with resonance
-filterFreq = 200 + brightness * brightness * 8000;  // Exponential feel
+// Base filter frequency with exponential curve
+filterFreqBase = 200 + brightness * brightness * 8000;
+
+// Filter envelope modulation adds sweep on note attack
+filterFreqMod = filterEnvAmount * filterEnv * 6000;
+
+// LFO modulation adds subtle movement
+filterFreqWithLFO = (filterFreqBase + filterFreqMod) * (1 + lfo * 0.3);
+
 filterQ = 0.5 + brightness * 0.5;
-filtered = chordOsc : fi.resonlp(filterFreq, filterQ, 1);
+filtered = chordOsc : fi.resonlp(filterFreqWithLFO, filterQ, 1);
 
 // ============================================================================
 // STEREO SPREAD
@@ -156,7 +190,7 @@ filtered = chordOsc : fi.resonlp(filterFreq, filterQ, 1);
 // Create subtle stereo width by slightly detuning L/R
 stereoSpread = 0.002;  // Very subtle detune
 leftOsc = filtered;
-rightOsc = chordOsc : fi.resonlp(filterFreq * (1 + stereoSpread), filterQ, 1);
+rightOsc = chordOsc : fi.resonlp(filterFreqWithLFO * (1 + stereoSpread), filterQ, 1);
 
 // ============================================================================
 // OUTPUT STAGE

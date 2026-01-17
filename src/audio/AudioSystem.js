@@ -27,6 +27,14 @@ export class AudioSystem {
     this.chordType = 5;  // Minor 9th default
     this.morph = 0.5;    // Waveform blend
 
+    // New synth parameters
+    this.attackTime = 0.05;
+    this.filterEnvAmount = 0.3;
+    this.filterEnvDecay = 1.5;
+    this.lfoRate = 0.3;
+    this.lfoDepth = 0;
+    this.detune = 0.015;
+
     // Reverb/Delay parameters
     this.reverbMix = 0.4;
     this.reverbRoom = 0.7;
@@ -124,6 +132,13 @@ export class AudioSystem {
       this.faustNode.setParamValue('/chord_synth/decayTime', this.decayTime);
       this.faustNode.setParamValue('/chord_synth/chordType', this.chordType);
       this.faustNode.setParamValue('/chord_synth/morph', this.morph);
+      // New synth parameters
+      this.faustNode.setParamValue('/chord_synth/attackTime', this.attackTime);
+      this.faustNode.setParamValue('/chord_synth/filterEnvAmount', this.filterEnvAmount);
+      this.faustNode.setParamValue('/chord_synth/filterEnvDecay', this.filterEnvDecay);
+      this.faustNode.setParamValue('/chord_synth/lfoRate', this.lfoRate);
+      this.faustNode.setParamValue('/chord_synth/lfoDepth', this.lfoDepth);
+      this.faustNode.setParamValue('/chord_synth/detune', this.detune);
       // Effect parameters (from effect-meta.json)
       this.faustNode.setParamValue('/chord_synth/reverbMix', this.reverbMix);
       this.faustNode.setParamValue('/chord_synth/reverbRoom', this.reverbRoom);
@@ -228,6 +243,8 @@ export class AudioSystem {
    */
   setChordType(value) {
     this.chordType = Math.round(value);
+    // Sync NoteMapper to use chord-matched scale
+    this.noteMapper.setChordType(this.chordType);
     this.updateFaustParams();
   }
 
@@ -237,6 +254,60 @@ export class AudioSystem {
    */
   setMorph(value) {
     this.morph = value;
+    this.updateFaustParams();
+  }
+
+  /**
+   * Set attack time.
+   * @param {number} value - Attack time in seconds (0.005-0.5)
+   */
+  setAttackTime(value) {
+    this.attackTime = value;
+    this.updateFaustParams();
+  }
+
+  /**
+   * Set filter envelope amount.
+   * @param {number} value - Filter envelope amount (0-1)
+   */
+  setFilterEnvAmount(value) {
+    this.filterEnvAmount = value;
+    this.updateFaustParams();
+  }
+
+  /**
+   * Set filter envelope decay.
+   * @param {number} value - Filter envelope decay in seconds (0.1-4)
+   */
+  setFilterEnvDecay(value) {
+    this.filterEnvDecay = value;
+    this.updateFaustParams();
+  }
+
+  /**
+   * Set LFO rate.
+   * @param {number} value - LFO rate in Hz (0.05-2)
+   */
+  setLfoRate(value) {
+    this.lfoRate = value;
+    this.updateFaustParams();
+  }
+
+  /**
+   * Set LFO depth.
+   * @param {number} value - LFO depth (0-0.5)
+   */
+  setLfoDepth(value) {
+    this.lfoDepth = value;
+    this.updateFaustParams();
+  }
+
+  /**
+   * Set voice detune amount.
+   * @param {number} value - Detune amount (0-0.05)
+   */
+  setDetune(value) {
+    this.detune = value;
     this.updateFaustParams();
   }
 

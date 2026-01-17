@@ -40,17 +40,16 @@ export class LakeSurface {
   }
 
   createMaterial() {
-    // WebTide-inspired water using MeshPhysicalMaterial (WebGPU compatible)
-    // Dark blue-green water color matching WebTide's vec3(0.01, 0.06, 0.1)
+    // Dramatic dusk water - very dark for silhouette effect against warm sky
     this.material = new THREE.MeshPhysicalMaterial({
-      color: new THREE.Color(0.01, 0.06, 0.1),
+      color: new THREE.Color(0.008, 0.025, 0.05),  // Very dark blue for silhouette
       metalness: 0.0,
-      roughness: 0.05,        // Very smooth for sharp reflections
-      envMapIntensity: 1.5,   // Strong environment reflections
-      clearcoat: 0.3,         // Subtle clearcoat for extra gloss
-      clearcoatRoughness: 0.1,
+      roughness: 0.03,        // Even smoother for sharper reflections
+      envMapIntensity: 2.0,   // Stronger environment reflections
+      clearcoat: 0.4,         // More clearcoat for gloss
+      clearcoatRoughness: 0.08,
       ior: 1.33,              // Water index of refraction
-      reflectivity: 0.9,      // High reflectivity for Fresnel-like effect
+      reflectivity: 0.95,     // Higher reflectivity for dramatic Fresnel
       side: THREE.DoubleSide,
       fog: true               // Explicitly enable fog on this material
     });
