@@ -6,13 +6,14 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "build:faust": "faust2wasm-ts faust/chord-synth.dsp public/audio/chord_synth -poly"
   },
   "dependencies": {
-    "three": "^0.170.0",
-    "@grame/faustwasm": "^0.6.0"
+    "three": "^0.170.0"
   },
   "devDependencies": {
+    "@grame/faustwasm": "^0.15.1",
     "vite": "^6.0.0"
   }
 }

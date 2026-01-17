@@ -1,12 +1,12 @@
 {
-    "name": "chord_synth",
-    "filename": "chord_synth.dsp",
-    "version": "2.79.3",
-    "compile_options": "-lang wasm-e -ct 1 -es 1 -mcd 16 -mdd 1024 -mdy 33 -single -ftz 2",
+    "name": "chordsynth",
+    "filename": "chord-synth",
+    "version": "2.83.6",
+    "compile_options": "-lang wasm-e -fpga-mem-th 4 -ct 1 -es 1 -mcd 16 -mdd 1024 -mdy 33 -single -ftz 2",
     "library_list": [
-        "/usr/share/faust/delays.lib",
-        "/usr/share/faust/reverbs.lib",
         "/usr/share/faust/stdfaust.lib",
+        "/usr/share/faust/reverbs.lib",
+        "/usr/share/faust/delays.lib",
         "/usr/share/faust/basics.lib",
         "/usr/share/faust/signals.lib",
         "/usr/share/faust/maths.lib",
@@ -21,8 +21,8 @@
         "/usr/share/faust",
         "."
     ],
-    "size": 315740,
-    "code": "wKatAZQ9Hw==",
+    "size": 319856,
+    "code": "UC3hAcQ7Hw==",
     "inputs": 0,
     "outputs": 2,
     "meta": [
@@ -33,16 +33,16 @@
             "basics.lib/name": "Faust Basic Element Library"
         },
         {
-            "basics.lib/version": "1.21.0"
+            "basics.lib/version": "1.22.0"
         },
         {
-            "compile_options": "-lang wasm-e -ct 1 -es 1 -mcd 16 -mdd 1024 -mdy 33 -single -ftz 2"
+            "compile_options": "-lang wasm-e -fpga-mem-th 4 -ct 1 -es 1 -mcd 16 -mdd 1024 -mdy 33 -single -ftz 2"
         },
         {
             "delays.lib/name": "Faust Delay Library"
         },
         {
-            "delays.lib/version": "1.1.0"
+            "delays.lib/version": "1.2.0"
         },
         {
             "envelopes.lib/ar:author": "Yann Orlarey, Stéphane Letz"
@@ -63,7 +63,7 @@
             "envelopes.lib/version": "1.3.0"
         },
         {
-            "filename": "chord_synth.dsp"
+            "filename": "chord-synth"
         },
         {
             "filters.lib/fir:author": "Julius O. Smith III"
@@ -141,10 +141,10 @@
             "maths.lib/name": "Faust Math Library"
         },
         {
-            "maths.lib/version": "2.8.1"
+            "maths.lib/version": "2.9.0"
         },
         {
-            "name": "chord_synth"
+            "name": "chordsynth"
         },
         {
             "oscillators.lib/lf_sawpos:author": "Bart Brouns, revised by Stéphane Letz"
@@ -180,7 +180,7 @@
             "reverbs.lib/name": "Faust Reverb Library"
         },
         {
-            "reverbs.lib/version": "1.4.0"
+            "reverbs.lib/version": "1.5.1"
         },
         {
             "signals.lib/name": "Faust Signal Routing Library"
@@ -195,15 +195,27 @@
     "ui": [
         {
             "type": "vgroup",
-            "label": "chord_synth",
+            "label": "chordsynth",
             "items": [
                 {
                     "type": "hslider",
+                    "label": "attackTime",
+                    "varname": "fHslider5",
+                    "shortname": "attackTime",
+                    "address": "/chordsynth/attackTime",
+                    "index": 270472,
+                    "init": 0.05,
+                    "min": 0.005,
+                    "max": 0.5,
+                    "step": 0.001
+                },
+                {
+                    "type": "hslider",
                     "label": "brightness",
-                    "varname": "fHslider3",
+                    "varname": "fHslider8",
                     "shortname": "brightness",
-                    "address": "/chord_synth/brightness",
-                    "index": 262156,
+                    "address": "/chordsynth/brightness",
+                    "index": 319792,
                     "init": 0.5,
                     "min": 0,
                     "max": 1,
@@ -214,8 +226,8 @@
                     "label": "chordType",
                     "varname": "fHslider7",
                     "shortname": "chordType",
-                    "address": "/chord_synth/chordType",
-                    "index": 266396,
+                    "address": "/chordsynth/chordType",
+                    "index": 270488,
                     "init": 5,
                     "min": 0,
                     "max": 10,
@@ -226,8 +238,8 @@
                     "label": "decayTime",
                     "varname": "fHslider6",
                     "shortname": "decayTime",
-                    "address": "/chord_synth/decayTime",
-                    "index": 266392,
+                    "address": "/chordsynth/decayTime",
+                    "index": 270484,
                     "init": 2.5,
                     "min": 0.5,
                     "max": 8,
@@ -235,11 +247,47 @@
                 },
                 {
                     "type": "hslider",
+                    "label": "detune",
+                    "varname": "fHslider4",
+                    "shortname": "detune",
+                    "address": "/chordsynth/detune",
+                    "index": 262180,
+                    "init": 0.015,
+                    "min": 0,
+                    "max": 0.05,
+                    "step": 0.001
+                },
+                {
+                    "type": "hslider",
+                    "label": "filterEnvAmount",
+                    "varname": "fHslider9",
+                    "shortname": "filterEnvAmount",
+                    "address": "/chordsynth/filterEnvAmount",
+                    "index": 319796,
+                    "init": 0.3,
+                    "min": 0,
+                    "max": 1,
+                    "step": 0.01
+                },
+                {
+                    "type": "hslider",
+                    "label": "filterEnvDecay",
+                    "varname": "fHslider10",
+                    "shortname": "filterEnvDecay",
+                    "address": "/chordsynth/filterEnvDecay",
+                    "index": 319808,
+                    "init": 1.5,
+                    "min": 0.1,
+                    "max": 4,
+                    "step": 0.1
+                },
+                {
+                    "type": "hslider",
                     "label": "freq",
-                    "varname": "fHslider5",
+                    "varname": "fHslider3",
                     "shortname": "freq",
-                    "address": "/chord_synth/freq",
-                    "index": 262188,
+                    "address": "/chordsynth/freq",
+                    "index": 262176,
                     "init": 440,
                     "min": 100,
                     "max": 2000,
@@ -250,7 +298,7 @@
                     "label": "gain",
                     "varname": "fHslider0",
                     "shortname": "gain",
-                    "address": "/chord_synth/gain",
+                    "address": "/chordsynth/gain",
                     "index": 262144,
                     "init": 0.5,
                     "min": 0,
@@ -262,15 +310,39 @@
                     "label": "gate",
                     "varname": "fButton0",
                     "shortname": "gate",
-                    "address": "/chord_synth/gate",
-                    "index": 266372
+                    "address": "/chordsynth/gate",
+                    "index": 270452
+                },
+                {
+                    "type": "hslider",
+                    "label": "lfoDepth",
+                    "varname": "fHslider11",
+                    "shortname": "lfoDepth",
+                    "address": "/chordsynth/lfoDepth",
+                    "index": 319812,
+                    "init": 0,
+                    "min": 0,
+                    "max": 0.5,
+                    "step": 0.01
+                },
+                {
+                    "type": "hslider",
+                    "label": "lfoRate",
+                    "varname": "fHslider12",
+                    "shortname": "lfoRate",
+                    "address": "/chordsynth/lfoRate",
+                    "index": 319816,
+                    "init": 0.3,
+                    "min": 0.05,
+                    "max": 2,
+                    "step": 0.01
                 },
                 {
                     "type": "hslider",
                     "label": "masterGain",
                     "varname": "fHslider1",
                     "shortname": "masterGain",
-                    "address": "/chord_synth/masterGain",
+                    "address": "/chordsynth/masterGain",
                     "index": 262148,
                     "init": 0.7,
                     "min": 0,
@@ -280,21 +352,9 @@
                 {
                     "type": "hslider",
                     "label": "morph",
-                    "varname": "fHslider4",
-                    "shortname": "morph",
-                    "address": "/chord_synth/morph",
-                    "index": 262172,
-                    "init": 0.5,
-                    "min": 0,
-                    "max": 1,
-                    "step": 0.01
-                },
-                {
-                    "type": "hslider",
-                    "label": "pan",
                     "varname": "fHslider2",
-                    "shortname": "pan",
-                    "address": "/chord_synth/pan",
+                    "shortname": "morph",
+                    "address": "/chordsynth/morph",
                     "index": 262152,
                     "init": 0.5,
                     "min": 0,

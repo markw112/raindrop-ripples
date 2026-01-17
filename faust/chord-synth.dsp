@@ -184,39 +184,32 @@ filterQ = 0.5 + brightness * 0.5;
 filtered = chordOsc : fi.resonlp(filterFreqWithLFO, filterQ, 1);
 
 // ============================================================================
-// STEREO SPREAD
+// OUTPUT STAGE (Mono for polyphonic voice mixing)
 // ============================================================================
 
-// Create subtle stereo width by slightly detuning L/R
-stereoSpread = 0.002;  // Very subtle detune
-leftOsc = filtered;
-rightOsc = chordOsc : fi.resonlp(filterFreqWithLFO * (1 + stereoSpread), filterQ, 1);
+// For polyphonic mode, each voice outputs mono
+// The effect section handles stereo spread
+voiceOut = filtered * gain * masterGain * 0.25;
+
+// Final mono output per voice (effect will handle stereo)
+process = voiceOut;
 
 // ============================================================================
-// OUTPUT STAGE
+// EFFECTS SECTION (receives mono sum of all voices, outputs stereo)
 // ============================================================================
 
-// Apply gain and panning
-panL = sqrt(1 - pan);
-panR = sqrt(pan);
-
-outL = leftOsc * gain * masterGain * panL * 0.25;  // Scale down to prevent clipping
-outR = rightOsc * gain * masterGain * panR * 0.25;
-
-// Final stereo output
-process = outL, outR;
-
-// ============================================================================
-// EFFECTS SECTION
-// ============================================================================
-
-// Simple stereo delay with feedback
+// Delay parameters
 maxDelaySamples = 96000;
 delaySamples = delayTime * ma.SR;
 
 // Single channel delay with feedback
-monoDelay = +~(de.delay(maxDelaySamples, delaySamples) * delayFeedback);
+singleDelay = +~(de.delay(maxDelaySamples, delaySamples) * delayFeedback);
 
-// Stereo delay: apply to both channels with slight offset for width
-effect = par(i, 2, _ * (1 - delayMix) + (_ : monoDelay) * delayMix) :
-         re.stereo_freeverb(0.5, reverbRoom, 0.5, reverbMix);
+// Panning coefficients
+panL = sqrt(1 - pan);
+panR = sqrt(pan);
+
+// Apply delay to mono signal, then split to stereo
+// Effect: mono -> delayed mono -> stereo panned -> reverb
+effect = _ : (_ <: (*(1-delayMix), (singleDelay * delayMix)) :> _) <: (*(panL), *(panR))
+         : re.stereo_freeverb(0.5, reverbRoom, 0.5, reverbMix);
