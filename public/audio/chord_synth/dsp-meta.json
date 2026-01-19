@@ -7,13 +7,13 @@
         "/usr/share/faust/stdfaust.lib",
         "/usr/share/faust/reverbs.lib",
         "/usr/share/faust/delays.lib",
-        "/usr/share/faust/basics.lib",
-        "/usr/share/faust/signals.lib",
-        "/usr/share/faust/maths.lib",
-        "/usr/share/faust/platform.lib",
         "/usr/share/faust/oscillators.lib",
+        "/usr/share/faust/platform.lib",
+        "/usr/share/faust/maths.lib",
+        "/usr/share/faust/basics.lib",
         "/usr/share/faust/filters.lib",
-        "/usr/share/faust/envelopes.lib"
+        "/usr/share/faust/envelopes.lib",
+        "/usr/share/faust/signals.lib"
     ],
     "include_pathnames": [
         "/share/faust",
@@ -21,8 +21,8 @@
         "/usr/share/faust",
         "."
     ],
-    "size": 319856,
-    "code": "UC3hAcQ7Hw==",
+    "size": 266416,
+    "code": "yKYLAcQ7Hw==",
     "inputs": 0,
     "outputs": 2,
     "meta": [
@@ -189,7 +189,7 @@
             "signals.lib/version": "1.6.0"
         },
         {
-            "version": "1.0"
+            "version": "2.0"
         }
     ],
     "ui": [
@@ -200,10 +200,10 @@
                 {
                     "type": "hslider",
                     "label": "attackTime",
-                    "varname": "fHslider5",
+                    "varname": "fHslider6",
                     "shortname": "attackTime",
                     "address": "/chordsynth/attackTime",
-                    "index": 270472,
+                    "index": 266380,
                     "init": 0.05,
                     "min": 0.005,
                     "max": 0.5,
@@ -212,10 +212,10 @@
                 {
                     "type": "hslider",
                     "label": "brightness",
-                    "varname": "fHslider8",
+                    "varname": "fHslider3",
                     "shortname": "brightness",
                     "address": "/chordsynth/brightness",
-                    "index": 319792,
+                    "index": 262168,
                     "init": 0.5,
                     "min": 0,
                     "max": 1,
@@ -223,23 +223,11 @@
                 },
                 {
                     "type": "hslider",
-                    "label": "chordType",
-                    "varname": "fHslider7",
-                    "shortname": "chordType",
-                    "address": "/chordsynth/chordType",
-                    "index": 270488,
-                    "init": 5,
-                    "min": 0,
-                    "max": 10,
-                    "step": 1
-                },
-                {
-                    "type": "hslider",
                     "label": "decayTime",
-                    "varname": "fHslider6",
+                    "varname": "fHslider7",
                     "shortname": "decayTime",
                     "address": "/chordsynth/decayTime",
-                    "index": 270484,
+                    "index": 266396,
                     "init": 2.5,
                     "min": 0.5,
                     "max": 8,
@@ -247,47 +235,23 @@
                 },
                 {
                     "type": "hslider",
-                    "label": "detune",
-                    "varname": "fHslider4",
-                    "shortname": "detune",
-                    "address": "/chordsynth/detune",
-                    "index": 262180,
-                    "init": 0.015,
-                    "min": 0,
-                    "max": 0.05,
-                    "step": 0.001
-                },
-                {
-                    "type": "hslider",
-                    "label": "filterEnvAmount",
-                    "varname": "fHslider9",
-                    "shortname": "filterEnvAmount",
-                    "address": "/chordsynth/filterEnvAmount",
-                    "index": 319796,
-                    "init": 0.3,
-                    "min": 0,
-                    "max": 1,
-                    "step": 0.01
-                },
-                {
-                    "type": "hslider",
-                    "label": "filterEnvDecay",
-                    "varname": "fHslider10",
-                    "shortname": "filterEnvDecay",
-                    "address": "/chordsynth/filterEnvDecay",
-                    "index": 319808,
-                    "init": 1.5,
-                    "min": 0.1,
-                    "max": 4,
-                    "step": 0.1
+                    "label": "filterCutoff",
+                    "varname": "fHslider2",
+                    "shortname": "filterCutoff",
+                    "address": "/chordsynth/filterCutoff",
+                    "index": 262164,
+                    "init": 2000,
+                    "min": 200,
+                    "max": 8000,
+                    "step": 1
                 },
                 {
                     "type": "hslider",
                     "label": "freq",
-                    "varname": "fHslider3",
+                    "varname": "fHslider5",
                     "shortname": "freq",
                     "address": "/chordsynth/freq",
-                    "index": 262176,
+                    "index": 262188,
                     "init": 440,
                     "min": 100,
                     "max": 2000,
@@ -311,31 +275,7 @@
                     "varname": "fButton0",
                     "shortname": "gate",
                     "address": "/chordsynth/gate",
-                    "index": 270452
-                },
-                {
-                    "type": "hslider",
-                    "label": "lfoDepth",
-                    "varname": "fHslider11",
-                    "shortname": "lfoDepth",
-                    "address": "/chordsynth/lfoDepth",
-                    "index": 319812,
-                    "init": 0,
-                    "min": 0,
-                    "max": 0.5,
-                    "step": 0.01
-                },
-                {
-                    "type": "hslider",
-                    "label": "lfoRate",
-                    "varname": "fHslider12",
-                    "shortname": "lfoRate",
-                    "address": "/chordsynth/lfoRate",
-                    "index": 319816,
-                    "init": 0.3,
-                    "min": 0.05,
-                    "max": 2,
-                    "step": 0.01
+                    "index": 266356
                 },
                 {
                     "type": "hslider",
@@ -352,10 +292,10 @@
                 {
                     "type": "hslider",
                     "label": "morph",
-                    "varname": "fHslider2",
+                    "varname": "fHslider4",
                     "shortname": "morph",
                     "address": "/chordsynth/morph",
-                    "index": 262152,
+                    "index": 262172,
                     "init": 0.5,
                     "min": 0,
                     "max": 1,

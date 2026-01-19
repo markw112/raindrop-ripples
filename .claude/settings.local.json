@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm run build:*)",
+      "Bash(vercel --version:*)",
+      "Bash(git push:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(npx faust2wasm-ts:*)",
+      "Bash(npx vercel:*)",
+      "Bash(npm run build:faust:*)"
+    ]
+  }
+}

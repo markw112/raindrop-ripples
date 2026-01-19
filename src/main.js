@@ -194,14 +194,23 @@ class App {
       volumeValue.textContent = Math.round(value * 100) + '%';
     });
 
-    // Chord type control
-    const chordNames = ['Oct', '5th', 'sus4', 'm', 'm7', 'm9', 'm11', '6/9', 'M9', 'M7', 'M'];
-    const chordSlider = document.getElementById('chord-type');
-    const chordValue = document.getElementById('chord-value');
-    chordSlider.addEventListener('input', (e) => {
+    // Scale selection control
+    const scaleNames = ['Pentatonic', 'Major', 'Minor', 'Dorian', 'Whole Tone', 'Chromatic'];
+    const scaleSlider = document.getElementById('scale');
+    const scaleValue = document.getElementById('scale-value');
+    scaleSlider.addEventListener('input', (e) => {
       const value = parseInt(e.target.value);
-      this.audioSystem.setChordType(value);
-      chordValue.textContent = chordNames[value];
+      this.audioSystem.setScale(value);
+      scaleValue.textContent = scaleNames[value];
+    });
+
+    // Filter cutoff control
+    const cutoffSlider = document.getElementById('filter-cutoff');
+    const cutoffValue = document.getElementById('cutoff-value');
+    cutoffSlider.addEventListener('input', (e) => {
+      const value = parseFloat(e.target.value);
+      this.audioSystem.setFilterCutoff(value);
+      cutoffValue.textContent = value + ' Hz';
     });
 
     // Morph control
@@ -243,6 +252,15 @@ class App {
       const value = parseFloat(e.target.value);
       this.audioSystem.setDelayMix(value);
       delayValue.textContent = Math.round(value * 100) + '%';
+    });
+
+    // Attack time control
+    const attackSlider = document.getElementById('attack');
+    const attackValue = document.getElementById('attack-value');
+    attackSlider.addEventListener('input', (e) => {
+      const value = parseFloat(e.target.value);
+      this.audioSystem.setAttackTime(value);
+      attackValue.textContent = Math.round(value * 1000) + 'ms';
     });
   }
 

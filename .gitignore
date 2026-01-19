@@ -32,3 +32,4 @@ npm-debug.log*
 # Large texture files (keep only the ones actually used)
 public/textures/*.hdr
 !public/textures/overcast.hdr
+.env*.local

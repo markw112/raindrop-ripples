@@ -7,13 +7,13 @@
         "/usr/share/faust/stdfaust.lib",
         "/usr/share/faust/reverbs.lib",
         "/usr/share/faust/delays.lib",
-        "/usr/share/faust/basics.lib",
-        "/usr/share/faust/signals.lib",
-        "/usr/share/faust/maths.lib",
-        "/usr/share/faust/platform.lib",
         "/usr/share/faust/oscillators.lib",
+        "/usr/share/faust/platform.lib",
+        "/usr/share/faust/maths.lib",
+        "/usr/share/faust/basics.lib",
         "/usr/share/faust/filters.lib",
-        "/usr/share/faust/envelopes.lib"
+        "/usr/share/faust/envelopes.lib",
+        "/usr/share/faust/signals.lib"
     ],
     "include_pathnames": [
         "/share/faust",
@@ -22,7 +22,7 @@
         "."
     ],
     "size": 1106436,
-    "code": "xDsf",
+    "code": "2IoyAcQ7Hw==",
     "inputs": 2,
     "outputs": 2,
     "meta": [
@@ -204,7 +204,7 @@
             "signals.lib/version": "1.6.0"
         },
         {
-            "version": "1.0"
+            "version": "2.0"
         }
     ],
     "ui": [

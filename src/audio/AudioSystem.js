@@ -1,5 +1,5 @@
 /**
- * Main audio system controller for FAUST-based chord synthesis.
+ * Main audio system controller for FAUST-based synthesis.
  * Handles Web Audio initialization, FAUST loading, and voice management.
  *
  * If FAUST module is not available, falls back to Web Audio API synthesis.
@@ -19,21 +19,14 @@ export class AudioSystem {
     this.useFallback = false;
 
     // Parameters
-    this.masterGain = 0.7;
+    this.masterGain = 0.4;     // Lower default volume
     this.brightness = 0.5;
     this.decayTime = 2.5;
 
-    // Chord synth parameters
-    this.chordType = 5;  // Minor 9th default
-    this.morph = 0.5;    // Waveform blend
-
-    // New synth parameters
+    // Synth parameters
+    this.filterCutoff = 2000;  // Hz
+    this.morph = 0.5;          // Waveform blend
     this.attackTime = 0.05;
-    this.filterEnvAmount = 0.3;
-    this.filterEnvDecay = 1.5;
-    this.lfoRate = 0.3;
-    this.lfoDepth = 0;
-    this.detune = 0.015;
 
     // Reverb/Delay parameters
     this.reverbMix = 0.4;
@@ -126,25 +119,19 @@ export class AudioSystem {
     if (!this.faustNode) return;
 
     try {
-      // DSP parameters (from dsp-meta.json)
-      this.faustNode.setParamValue('/chord_synth/masterGain', this.masterGain);
-      this.faustNode.setParamValue('/chord_synth/brightness', this.brightness);
-      this.faustNode.setParamValue('/chord_synth/decayTime', this.decayTime);
-      this.faustNode.setParamValue('/chord_synth/chordType', this.chordType);
-      this.faustNode.setParamValue('/chord_synth/morph', this.morph);
-      // New synth parameters
-      this.faustNode.setParamValue('/chord_synth/attackTime', this.attackTime);
-      this.faustNode.setParamValue('/chord_synth/filterEnvAmount', this.filterEnvAmount);
-      this.faustNode.setParamValue('/chord_synth/filterEnvDecay', this.filterEnvDecay);
-      this.faustNode.setParamValue('/chord_synth/lfoRate', this.lfoRate);
-      this.faustNode.setParamValue('/chord_synth/lfoDepth', this.lfoDepth);
-      this.faustNode.setParamValue('/chord_synth/detune', this.detune);
+      // DSP parameters (use /chordsynth/ path from dsp-meta.json)
+      this.faustNode.setParamValue('/chordsynth/masterGain', this.masterGain);
+      this.faustNode.setParamValue('/chordsynth/filterCutoff', this.filterCutoff);
+      this.faustNode.setParamValue('/chordsynth/brightness', this.brightness);
+      this.faustNode.setParamValue('/chordsynth/morph', this.morph);
+      this.faustNode.setParamValue('/chordsynth/decayTime', this.decayTime);
+      this.faustNode.setParamValue('/chordsynth/attackTime', this.attackTime);
       // Effect parameters (from effect-meta.json)
-      this.faustNode.setParamValue('/chord_synth/reverbMix', this.reverbMix);
-      this.faustNode.setParamValue('/chord_synth/reverbRoom', this.reverbRoom);
-      this.faustNode.setParamValue('/chord_synth/delayTime', this.delayTime);
-      this.faustNode.setParamValue('/chord_synth/delayFeedback', this.delayFeedback);
-      this.faustNode.setParamValue('/chord_synth/delayMix', this.delayMix);
+      this.faustNode.setParamValue('/chordsynth/reverbMix', this.reverbMix);
+      this.faustNode.setParamValue('/chordsynth/reverbRoom', this.reverbRoom);
+      this.faustNode.setParamValue('/chordsynth/delayTime', this.delayTime);
+      this.faustNode.setParamValue('/chordsynth/delayFeedback', this.delayFeedback);
+      this.faustNode.setParamValue('/chordsynth/delayMix', this.delayMix);
     } catch (e) {
       console.warn('Error setting FAUST param:', e);
     }
@@ -175,7 +162,7 @@ export class AudioSystem {
   }
 
   /**
-   * Set tone brightness.
+   * Set tone brightness (velocity->filter modulation amount).
    * @param {number} brightness - Brightness level (0-1)
    */
   setBrightness(brightness) {
@@ -185,10 +172,19 @@ export class AudioSystem {
 
   /**
    * Set decay time.
-   * @param {number} seconds - Decay duration (0.5-5)
+   * @param {number} seconds - Decay duration (0.5-8)
    */
   setDecayTime(seconds) {
     this.decayTime = seconds;
+    this.updateFaustParams();
+  }
+
+  /**
+   * Set filter cutoff frequency.
+   * @param {number} value - Filter cutoff in Hz (200-8000)
+   */
+  setFilterCutoff(value) {
+    this.filterCutoff = value;
     this.updateFaustParams();
   }
 
@@ -238,14 +234,11 @@ export class AudioSystem {
   }
 
   /**
-   * Set chord type.
-   * @param {number} value - Chord type (0-10)
+   * Set scale for note quantization.
+   * @param {number} scaleIndex - Scale index (0-5)
    */
-  setChordType(value) {
-    this.chordType = Math.round(value);
-    // Sync NoteMapper to use chord-matched scale
-    this.noteMapper.setChordType(this.chordType);
-    this.updateFaustParams();
+  setScale(scaleIndex) {
+    this.noteMapper.setScale(scaleIndex);
   }
 
   /**
@@ -267,48 +260,11 @@ export class AudioSystem {
   }
 
   /**
-   * Set filter envelope amount.
-   * @param {number} value - Filter envelope amount (0-1)
+   * Set chord type (kept for API compatibility, no-op).
+   * @param {number} value - Chord type (ignored)
    */
-  setFilterEnvAmount(value) {
-    this.filterEnvAmount = value;
-    this.updateFaustParams();
-  }
-
-  /**
-   * Set filter envelope decay.
-   * @param {number} value - Filter envelope decay in seconds (0.1-4)
-   */
-  setFilterEnvDecay(value) {
-    this.filterEnvDecay = value;
-    this.updateFaustParams();
-  }
-
-  /**
-   * Set LFO rate.
-   * @param {number} value - LFO rate in Hz (0.05-2)
-   */
-  setLfoRate(value) {
-    this.lfoRate = value;
-    this.updateFaustParams();
-  }
-
-  /**
-   * Set LFO depth.
-   * @param {number} value - LFO depth (0-0.5)
-   */
-  setLfoDepth(value) {
-    this.lfoDepth = value;
-    this.updateFaustParams();
-  }
-
-  /**
-   * Set voice detune amount.
-   * @param {number} value - Detune amount (0-0.05)
-   */
-  setDetune(value) {
-    this.detune = value;
-    this.updateFaustParams();
+  setChordType(value) {
+    // No-op - chord functionality removed
   }
 
   /**
@@ -345,7 +301,7 @@ export class AudioSystem {
 
     try {
       // Set per-voice pan before triggering note
-      this.faustNode.setParamValue('/chord_synth/pan', noteParams.pan);
+      this.faustNode.setParamValue('/chordsynth/pan', noteParams.pan);
 
       // FAUST polyphonic API
       this.faustNode.keyOn(
@@ -388,10 +344,10 @@ export class AudioSystem {
     voiceGain.gain.value = gain * 0.15; // Scale down to prevent clipping
     voiceGain.connect(panner);
 
-    // Apply brightness via filter
+    // Apply brightness via filter (velocity-modulated cutoff)
     const filter = this.audioContext.createBiquadFilter();
     filter.type = 'lowpass';
-    filter.frequency.value = 800 + this.brightness * 6000;
+    filter.frequency.value = this.filterCutoff + gain * this.brightness * 6000;
     filter.Q.value = 0.5;
     filter.connect(voiceGain);
 
@@ -410,17 +366,17 @@ export class AudioSystem {
 
       // Envelope: quick attack, exponential decay
       partialGain.gain.setValueAtTime(0, now);
-      partialGain.gain.linearRampToValueAtTime(baseAmp, now + 0.02);
+      partialGain.gain.linearRampToValueAtTime(baseAmp, now + this.attackTime);
 
       // Higher partials decay faster
       const partialDecayTime = this.decayTime * decayMod;
-      partialGain.gain.exponentialRampToValueAtTime(0.001, now + 0.02 + partialDecayTime);
+      partialGain.gain.exponentialRampToValueAtTime(0.001, now + this.attackTime + partialDecayTime);
 
       osc.connect(partialGain);
       partialGain.connect(filter);
 
       osc.start(now);
-      osc.stop(now + 0.02 + partialDecayTime + 0.1);
+      osc.stop(now + this.attackTime + partialDecayTime + 0.1);
 
       oscillators.push(osc);
       partialGains.push(partialGain);
@@ -469,6 +425,7 @@ export class AudioSystem {
       contextState: this.audioContext?.state,
       activeVoices: this.activeVoices.length,
       masterGain: this.masterGain,
+      filterCutoff: this.filterCutoff,
       brightness: this.brightness,
       decayTime: this.decayTime
     };
