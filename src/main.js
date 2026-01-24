@@ -5,6 +5,8 @@ import { RippleSimulation } from './water/RippleSimulation.js';
 import { RaindropSystem } from './particles/RaindropSystem.js';
 import { createSky, createEnvMap, loadEnvMap } from './environment/Sky.js';
 import { AudioSystem } from './audio/AudioSystem.js';
+import { FloorSurface } from './environment/FloorSurface.js';
+import { CausticsRenderer } from './water/CausticsRenderer.js';
 
 class App {
   constructor() {
@@ -107,6 +109,40 @@ class App {
     this.scene.add(this.lake.outerMesh);  // Add extended water for infinite horizon
     console.log('Lake surface created');
 
+    // Create floor surface for caustics
+    console.log('Creating floor surface...');
+    this.floor = new FloorSurface({
+      size: 25,
+      depth: -2,
+      style: 'sand',
+      causticsIntensity: 0.5
+    });
+    this.floor.setEnvMap(this.envMap);
+    this.scene.add(this.floor.mesh);
+    console.log('Floor surface created');
+
+    // Create caustics renderer (only if GPU mode is active)
+    if (this.rippleSimulation.isGPUMode && this.rippleSimulation.isGPUMode()) {
+      console.log('Creating caustics renderer...');
+      this.causticsRenderer = new CausticsRenderer(this.renderer, {
+        resolution: 512,
+        intensity: 0.6
+      });
+      this.causticsRenderer.setLightDirection(this.sunDirection);
+      this.causticsRenderer.setWaterDepth(2.0);
+      // Connect height texture
+      const heightTex = this.rippleSimulation.getHeightTexture();
+      if (heightTex) {
+        this.causticsRenderer.setHeightTexture(heightTex);
+        // Connect caustics to floor
+        this.floor.setCausticsTexture(this.causticsRenderer.getCausticsTexture());
+      }
+      console.log('Caustics renderer created');
+    } else {
+      this.causticsRenderer = null;
+      console.log('Caustics disabled (CPU mode)');
+    }
+
     // Create raindrop particle system
     console.log('Creating raindrop system...');
     this.raindrops = new RaindropSystem(this.renderer, {
@@ -156,6 +192,58 @@ class App {
       this.raindrops.gravity = -value;
       speedValue.textContent = value;
     });
+
+    // Setup visual controls
+    this.setupVisualControls();
+  }
+
+  setupVisualControls() {
+    // Caustics intensity control
+    const causticsSlider = document.getElementById('caustics');
+    const causticsValue = document.getElementById('caustics-value');
+    if (causticsSlider) {
+      causticsSlider.addEventListener('input', (e) => {
+        const value = parseFloat(e.target.value);
+        if (this.causticsRenderer) {
+          this.causticsRenderer.setIntensity(value);
+        }
+        if (this.floor) {
+          this.floor.setCausticsIntensity(value);
+        }
+        causticsValue.textContent = Math.round(value * 100) + '%';
+      });
+    }
+
+    // Floor style control
+    const floorNames = ['Sand', 'Moss', 'Stone'];
+    const floorStyleSlider = document.getElementById('floor-style');
+    const floorValue = document.getElementById('floor-value');
+    if (floorStyleSlider) {
+      floorStyleSlider.addEventListener('input', (e) => {
+        const idx = parseInt(e.target.value);
+        const styles = ['sand', 'moss', 'stone'];
+        if (this.floor) {
+          this.floor.setStyle(styles[idx]);
+        }
+        floorValue.textContent = floorNames[idx];
+      });
+    }
+
+    // Floor depth control
+    const depthSlider = document.getElementById('floor-depth');
+    const depthValue = document.getElementById('depth-value');
+    if (depthSlider) {
+      depthSlider.addEventListener('input', (e) => {
+        const value = parseFloat(e.target.value);
+        if (this.floor) {
+          this.floor.setDepth(-value);
+        }
+        if (this.causticsRenderer) {
+          this.causticsRenderer.setWaterDepth(value);
+        }
+        depthValue.textContent = value.toFixed(1);
+      });
+    }
   }
 
   setupAudioControls() {
@@ -315,8 +403,19 @@ class App {
     // Update ripple simulation
     this.rippleSimulation.update(this.renderer);
 
+    // Update caustics (if available)
+    if (this.causticsRenderer) {
+      const heightTex = this.rippleSimulation.getHeightTexture();
+      this.causticsRenderer.update(this.renderer, heightTex);
+    }
+
     // Update lake mesh
     this.lake.update(time);
+
+    // Update floor
+    if (this.floor) {
+      this.floor.update(time);
+    }
 
     // Render
     this.renderer.render(this.scene, this.camera);

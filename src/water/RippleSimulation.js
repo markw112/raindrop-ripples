@@ -1,12 +1,16 @@
 import * as THREE from 'three/webgpu';
+import { GPURippleSimulation } from './GPURippleSimulation.js';
 
 export class RippleSimulation {
-  constructor(renderer, resolution = 256) {
+  constructor(renderer, resolution = 256, preferGPU = true) {
     this.renderer = renderer;
     this.resolution = resolution;
     this.waveSpeed = 0.3;
     this.damping = 0.985;
     this.ripples = [];
+    this.preferGPU = preferGPU;
+    this.useGPU = false;
+    this.gpuSimulation = null;
 
     // Edge fade configuration - ripples fade out instead of bouncing
     this.edgeFadeWidth = 25;      // Pixels from edge where fade begins
@@ -18,7 +22,51 @@ export class RippleSimulation {
     this.heightNext = new Float32Array(resolution * resolution);
   }
 
+  /**
+   * Check if WebGPU compute shaders are supported
+   */
+  async checkGPUSupport() {
+    if (!navigator.gpu) return false;
+    if (!this.renderer.isWebGPURenderer) return false;
+
+    try {
+      const adapter = await navigator.gpu.requestAdapter();
+      return adapter !== null;
+    } catch (e) {
+      console.warn('WebGPU compute check failed:', e);
+      return false;
+    }
+  }
+
   async init() {
+    // Check GPU support and initialize appropriate simulation
+    if (this.preferGPU) {
+      const gpuSupported = await this.checkGPUSupport();
+      if (gpuSupported) {
+        try {
+          this.gpuSimulation = new GPURippleSimulation(this.renderer, this.resolution);
+          this.useGPU = true;
+          console.log('Using GPU-accelerated ripple simulation');
+        } catch (e) {
+          console.warn('Failed to initialize GPU simulation, falling back to CPU:', e);
+          this.useGPU = false;
+        }
+      } else {
+        console.log('WebGPU compute not supported, using CPU simulation');
+      }
+    }
+
+    // TEMPORARY: Force CPU mode for debugging TSL material issues
+    // TODO: Remove this once TSL StorageTexture sampling is fixed
+    if (this.useGPU) {
+      console.log('DEBUG: Forcing CPU simulation mode (GPU disabled for testing)');
+      this.useGPU = false;
+      this.gpuSimulation = null;
+    }
+
+    if (!this.useGPU) {
+      console.log('Using CPU-based ripple simulation');
+    }
     const res = this.resolution;
 
     // Create data texture for height field
@@ -49,7 +97,13 @@ export class RippleSimulation {
   }
 
   addRipple(x, z, strength = 0.5) {
-    // Convert world position to texture coordinates
+    // Delegate to GPU simulation if available
+    if (this.useGPU && this.gpuSimulation) {
+      this.gpuSimulation.addRipple(x, z, strength);
+      return;
+    }
+
+    // CPU fallback: Convert world position to texture coordinates
     const lakeSize = 20;
     const u = (x / lakeSize) + 0.5;
     const v = (z / lakeSize) + 0.5;
@@ -60,6 +114,13 @@ export class RippleSimulation {
   }
 
   update(renderer) {
+    // Delegate to GPU simulation if available
+    if (this.useGPU && this.gpuSimulation) {
+      this.gpuSimulation.update(renderer);
+      return;
+    }
+
+    // CPU fallback simulation
     const res = this.resolution;
 
     // Inject pending ripples
@@ -127,18 +188,57 @@ export class RippleSimulation {
     this.heightCurrent = this.heightNext;
     this.heightNext = temp;
 
-    // Update texture
+    // Update texture with height and normals
+    // Format: R=height, G=velocity(unused), B=normal.x, A=normal.y
     const data = this.heightTexture.image.data;
-    for (let i = 0; i < res * res; i++) {
-      data[i * 4] = this.heightCurrent[i];
-      data[i * 4 + 1] = 0;
-      data[i * 4 + 2] = 0;
-      data[i * 4 + 3] = 1;
+    for (let y = 0; y < res; y++) {
+      for (let x = 0; x < res; x++) {
+        const i = y * res + x;
+
+        // Height
+        data[i * 4] = this.heightCurrent[i];
+
+        // Calculate normals from height differences
+        const hL = x > 0 ? this.heightCurrent[i - 1] : this.heightCurrent[i];
+        const hR = x < res - 1 ? this.heightCurrent[i + 1] : this.heightCurrent[i];
+        const hU = y > 0 ? this.heightCurrent[i - res] : this.heightCurrent[i];
+        const hD = y < res - 1 ? this.heightCurrent[i + res] : this.heightCurrent[i];
+
+        const nx = (hL - hR) * 2;
+        const ny = (hU - hD) * 2;
+
+        data[i * 4 + 1] = 0;   // G: velocity (unused)
+        data[i * 4 + 2] = nx;  // B: normal.x
+        data[i * 4 + 3] = ny;  // A: normal.y
+      }
     }
     this.heightTexture.needsUpdate = true;
   }
 
   getHeightTexture() {
+    if (this.useGPU && this.gpuSimulation) {
+      return this.gpuSimulation.getHeightTexture();
+    }
     return this.heightTexture;
+  }
+
+  /**
+   * Check if GPU simulation is active
+   */
+  isGPUMode() {
+    return this.useGPU;
+  }
+
+  /**
+   * Get current height data for CPU access (for LakeSurface vertex deformation)
+   * Returns the CPU height array or empty array if in GPU mode
+   */
+  getHeightData() {
+    if (this.useGPU) {
+      // In GPU mode, we don't have CPU access to height data
+      // The mesh deformation will be done via shader instead
+      return null;
+    }
+    return this.heightCurrent;
   }
 }

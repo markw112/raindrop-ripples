@@ -1,10 +1,14 @@
 import * as THREE from 'three/webgpu';
+import { TSLWaterMaterial, createSimpleWaterMaterial } from './TSLWaterMaterial.js';
 
 export class LakeSurface {
   constructor(size = 20, segments = 128, rippleSimulation = null) {
     this.size = size;
     this.segments = segments;
     this.rippleSimulation = rippleSimulation;
+
+    // Track if we're using GPU mode
+    this.useGPUMode = rippleSimulation && rippleSimulation.isGPUMode && rippleSimulation.isGPUMode();
 
     this.createGeometry();
     this.createMaterial();
@@ -40,19 +44,32 @@ export class LakeSurface {
   }
 
   createMaterial() {
-    // Dramatic dusk water - very dark for silhouette effect against warm sky
-    this.material = new THREE.MeshPhysicalMaterial({
-      color: new THREE.Color(0.008, 0.025, 0.05),  // Very dark blue for silhouette
-      metalness: 0.0,
-      roughness: 0.03,        // Even smoother for sharper reflections
-      envMapIntensity: 2.0,   // Stronger environment reflections
-      clearcoat: 0.4,         // More clearcoat for gloss
-      clearcoatRoughness: 0.08,
-      ior: 1.33,              // Water index of refraction
-      reflectivity: 0.95,     // Higher reflectivity for dramatic Fresnel
-      side: THREE.DoubleSide,
-      fog: true               // Explicitly enable fog on this material
-    });
+    // Use TSL material for GPU mode (with shader-based displacement)
+    // Fall back to simple physical material for CPU mode (with JS vertex updates)
+    if (this.useGPUMode) {
+      this.material = new TSLWaterMaterial();
+      // Connect height texture from simulation
+      if (this.rippleSimulation) {
+        const heightTex = this.rippleSimulation.getHeightTexture();
+        if (heightTex) {
+          this.material.setHeightTexture(heightTex);
+        }
+      }
+    } else {
+      // Dramatic dusk water - very dark for silhouette effect against warm sky
+      this.material = new THREE.MeshPhysicalMaterial({
+        color: new THREE.Color(0.008, 0.025, 0.05),  // Very dark blue for silhouette
+        metalness: 0.0,
+        roughness: 0.03,        // Even smoother for sharper reflections
+        envMapIntensity: 2.0,   // Stronger environment reflections
+        clearcoat: 0.4,         // More clearcoat for gloss
+        clearcoatRoughness: 0.08,
+        ior: 1.33,              // Water index of refraction
+        reflectivity: 0.95,     // Higher reflectivity for dramatic Fresnel
+        side: THREE.DoubleSide,
+        fog: true               // Explicitly enable fog on this material
+      });
+    }
   }
 
   /**
@@ -60,8 +77,12 @@ export class LakeSurface {
    * @param {THREE.Texture} envMap
    */
   setEnvMap(envMap) {
-    this.material.envMap = envMap;
-    this.material.needsUpdate = true;
+    if (this.useGPUMode && this.material.setEnvMap) {
+      this.material.setEnvMap(envMap);
+    } else {
+      this.material.envMap = envMap;
+      this.material.needsUpdate = true;
+    }
   }
 
   /**
@@ -76,6 +97,19 @@ export class LakeSurface {
   update(time) {
     if (!this.rippleSimulation) return;
 
+    // In GPU mode, the shader handles vertex displacement
+    // We just need to update the height texture reference
+    if (this.useGPUMode) {
+      if (this.material.setHeightTexture) {
+        const heightTex = this.rippleSimulation.getHeightTexture();
+        if (heightTex) {
+          this.material.setHeightTexture(heightTex);
+        }
+      }
+      return;
+    }
+
+    // CPU mode: manually update vertex positions
     const heightData = this.rippleSimulation.heightCurrent;
     const res = this.rippleSimulation.resolution;
     const positions = this.geometry.attributes.position.array;
